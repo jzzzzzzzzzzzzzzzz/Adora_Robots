@@ -1,0 +1,18 @@
+nodes:
+  - id: test_SerialLiftingMotor
+    operator:
+      python: ./test_SerialLiftingMotor.py
+      inputs:
+        tick: dora/timer/millis/500
+      outputs:
+        - cmd_position
+
+
+  - id: SerialLiftingMotor_driver_dora
+    operator:
+      python: ./SerialLiftingMotor_driver_dora.py
+      inputs:
+        tick: dora/timer/millis/90
+        cmd_position: test_SerialLiftingMotor/cmd_position
+      outputs:
+        - cur_position

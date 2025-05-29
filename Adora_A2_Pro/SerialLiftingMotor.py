@@ -11,7 +11,7 @@ class SerialLiftingMotor:
 
         self.MIN_MOTOR_POSITION = 0
         self.MAX_MOTOR_POSITION = 36044800
-
+        self.motor_positon_read = 0
         self.motor_position_set(0)
         # 配置串口参数
     def init_serial(self, port, baudrate=115200):
@@ -30,42 +30,40 @@ class SerialLiftingMotor:
 
     def run(self):
  
-        while True:
+        #while True:
  
-            self.motor_position_read()
-            time.sleep(0.1)
+        self.motor_position_read()
+        #time.sleep(0.1)
 
-            uart_buffer_data = self.ser.read_all()  
+        uart_buffer_data = self.ser.read_all()  
 
-            if(len(uart_buffer_data) < 7):
-                print("uart_buffer_data < 7")
-                continue
-            
-            tem_bytes = bytearray()
-            tem_bytes.extend(uart_buffer_data[0:7]) #高位存低地址
-            tem_bytes_str = ' '.join(f"{b:02X}" for b in tem_bytes)
-            print(f"HEtem_bytes_strX: [{tem_bytes_str}]")
+        if(len(uart_buffer_data) < 7):
+            print("uart_buffer_data < 7")
+            return
+        
+        tem_bytes = bytearray()
+        tem_bytes.extend(uart_buffer_data[0:7]) #高位存低地址
+        tem_bytes_str = ' '.join(f"{b:02X}" for b in tem_bytes)
+        print(f"HEtem_bytes_strX: [{tem_bytes_str}]")
 
-            recives_crc = SerialSiganMotor.calculate_crc16(tem_bytes)
-            if recives_crc:
-                # 打印十六进制和ASCII格式
-                hex_str = ' '.join(f"{b:02X}" for b in uart_buffer_data)
-                crc_str = ' '.join(f"{b:02X}" for b in recives_crc)
-                ascii_str = ''.join(chr(b) if 32 <= b <= 126 else '.' for b in recives_crc)
-                print(f"HEX: [{hex_str}] CRC: [{crc_str}]  ASCII: [{ascii_str}]")
-            #print("daying:")
+        recives_crc = self.calculate_crc16(tem_bytes)
+        if recives_crc:
+            # 打印十六进制和ASCII格式
+            hex_str = ' '.join(f"{b:02X}" for b in uart_buffer_data)
+            crc_str = ' '.join(f"{b:02X}" for b in recives_crc)
+            ascii_str = ''.join(chr(b) if 32 <= b <= 126 else '.' for b in recives_crc)
+            print(f"HEX: [{hex_str}] CRC: [{crc_str}]  ASCII: [{ascii_str}]")
+        #print("daying:")
 
 
-            if(uart_buffer_data[0] == 0x01  
-                and uart_buffer_data[1] == 0x03 
-                and uart_buffer_data[2] == 0x04):
+        if(uart_buffer_data[0] == 0x01  
+            and uart_buffer_data[1] == 0x03 
+            and uart_buffer_data[2] == 0x04):
 
-    
-
-                position_bytes = bytearray()
-                position_bytes.extend([uart_buffer_data[5], uart_buffer_data[6],uart_buffer_data[3], uart_buffer_data[4]]) #高位存低地址
-                position_int = int.from_bytes(position_bytes,'big',signed = True)
-                print("position:", position_int)
+            position_bytes = bytearray()
+            position_bytes.extend([uart_buffer_data[5], uart_buffer_data[6],uart_buffer_data[3], uart_buffer_data[4]]) #高位存低地址
+            self.motor_positon_read = int.from_bytes(position_bytes,'big',signed = True)
+            print("position:", self.motor_positon_read)
 
 
     def motor_init(self):
@@ -94,7 +92,7 @@ class SerialLiftingMotor:
         self.ser.write(data_array_4)
         time.sleep(0.2)
 
-    def calculate_crc16(data: bytes) -> bytes:
+    def calculate_crc16(self,data: bytes) -> bytes:
         auchCRCHi = [ # CRC 高位字节值表 */
             0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81,
             0x40, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0,
@@ -157,10 +155,10 @@ class SerialLiftingMotor:
     def motor_position_read(self):
         data_array_1 = bytearray()
         data_array_1.extend([0x01, 0x03, 0x00, 0x16, 0x00, 0x02])  # read motor global position
-        crc_values = SerialSiganMotor.calculate_crc16(data_array_1) # calculate crc
+        crc_values = self.calculate_crc16(data_array_1) # calculate crc
         #print(f"CRC16: {crc_values[1]}")  # 应输出 0x480A
         data_array_1.extend([crc_values[0], crc_values[1]])
-        print(f"CRC16: 0x{data_array_1.hex().upper()}")
+        #print(f"CRC16: 0x{data_array_1.hex().upper()}")
         
         if not self.ser.is_open:
             self.ser.open()
@@ -189,7 +187,7 @@ class SerialLiftingMotor:
 
         print(f"CRC16: 0x{data_array_1.hex().upper()}")
 
-        crc_values = SerialSiganMotor.calculate_crc16(data_array_1) # calculate crc
+        crc_values = self.calculate_crc16(data_array_1) # calculate crc
         data_array_1.extend([crc_values[0], crc_values[1]])
         if not self.ser.is_open:
             self.ser.open()
