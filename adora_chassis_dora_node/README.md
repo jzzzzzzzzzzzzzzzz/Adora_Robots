@@ -1,6 +1,6 @@
-# Adora A1 mini chassis
+# Adora  chassis node
 
- 
+ support: **Adora_A1_Mini**  、**Adora_A1_Pro**  、**Adora_A2_Mini**  、**Adora_A2_Pro** 
 
 ###   Usage 
 

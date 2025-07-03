@@ -26,6 +26,7 @@ extern "C"
 
 #include "ros_dt_msg.h"
 #include "ros_dt_control.h"
+#include "geomsgs_twist_msg.h"
 
 #include "serial/serial.h"
 
@@ -58,137 +59,48 @@ int control_mode = 0;//1开启线速度、角速度反馈模式  2开启速度�
 // 初始化串口
 string usart_port = "/dev/ttyUSB0";
 int baud_data = 115200;
-double control_mode =0; 
 int time_out = 1000;
 
 uint16_t len = 0;
 uint8_t data[200];
 uint8_t buffer[200] = {0};
-std::string usart_port;
-int baud_data;
+ 
+ 
 int len_time = 0;
 
 struct Dt1
 {
-	int32 vx;
-	float32 vz;
-	uint16 voltage;
-	uint16 state;
-}
+	int32_t vx;
+	float vz;
+	uint16_t voltage;
+	uint16_t state;
+};
 struct Control1
 {
-	int16 vx;
-	float32 vz;
-	int16 lspeed;
-	int16 rspeed;
-}
+	int16_t vx;
+	float vz;
+	int16_t lspeed;
+	int16_t rspeed;
+};
 struct Dt2
 {
-	int16 lspeed;
-	int16 rspeed;
-	int16 ladden;
-	int16 radden;
-	uint16 voltage;
-	uint16 state;
-}
+	int16_t lspeed;
+	int16_t rspeed;
+	int16_t ladden;
+	int16_t radden;
+	uint16_t voltage;
+	uint16_t state;
+};
 struct Error
 {
-	uint8 error;
-}
+	uint8_t error;
+};
 
  Dt1 dt1_msg;
  Control1 control_msg;
  Dt2 dt2_msg;
 
-
-
-void read_uart_buffer(void)
-{
-	
-	len = ser.available();
-	if (len >= sizeof(RXRobotData20MS.data))
-	{
-
-		ser.read(buffer, len);
-		memset(RXRobotData20MS.data, 0, sizeof(RXRobotData20MS.data));
-		for (u8 i = 0; i < sizeof(RXRobotData20MS.data); i++)
-		{
-			RXRobotData20MS.data[i] = buffer[i];
-		}
-		u16 TempCheck = 0;
-		for(u8 i=0;i<sizeof(RXRobotData20MS.data)-2;i++)
-		{
-			TempCheck += RXRobotData20MS.data[i];
-		}
-
-		// 头和校验正确
-		if (RXRobotData20MS.prot.Header == HEADER && RXRobotData20MS.prot.Check == TempCheck && RXRobotData20MS.prot.Cmd == 0x81)
-		{
-			len_time = 0;
-			for (int i = 0; i < sizeof(RXMode1.data); i++)
-			{
-				if (control_mode == 1)
-				{
-					RXMode1.data[i] = RXRobotData20MS.prot.data[i];
-				}
-				else if (control_mode == 2)
-				{
-					RXMode2.data[i] = RXRobotData20MS.prot.data[i];
-				}
-			}
-
-			// 消息赋值
-			if (control_mode == 1)
-			{
-				dt1_msg.vx = RXMode1.prot.Vx;
-				dt1_msg.vz = RXMode1.prot.Vz;
-				dt1_msg.voltage = RXMode1.prot.Voltage;
-				dt1_msg.state = RXMode1.prot.State;
-				//pub1->publish(dt1_msg);
-				memset(RXMode1.data, 0, sizeof(RXMode1.data));
-			}
-			else if (control_mode == 2)
-			{
-				dt2_msg.lspeed = RXMode2.prot.LSpeed;
-				dt2_msg.rspeed = RXMode2.prot.RSpeed;
-				dt2_msg.ladden = RXMode2.prot.LAddEN;
-				dt2_msg.radden = RXMode2.prot.RAddEN;
-				dt2_msg.voltage = RXMode2.prot.Voltage;
-				dt2_msg.state = RXMode2.prot.State;
-				//pub2->publish(dt2_msg);
-				memset(RXMode2.data, 0, sizeof(RXMode2.data));
-			}
-		}
-		else
-		{
-			printf("not read accuracy,SUM:%02X,Check:%02X\n\n",TempCheck,RXRobotData20MS.prot.Check );
-			len = ser.available();
-			// 清空数据残余
-			if (len > 0 && len < 200)
-			{
-				ser.read(data, len);
-			}
-			else
-			{
-				ser.read(data, 200);
-			}
-			len_time = 0;
-		}
-	}
-	else
-	{
-		len_time++;
-		if (len_time > 100)
-		{
-			printf("len_time:%d\n",len_time);
-			len_time = 0;
-			open20ms(control_mode);
-			printf("ros dt open 20cm\n");               
-		}
-	}         
-}
-
-
+ 
 
 static void open20ms(u8 data)
 {
@@ -258,7 +170,8 @@ void static mySigIntHandler(int sig)
 {
     printf("close the com serial!\n");
     open20ms(0);
-    sleep(1);
+	std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    //sleep(1);
     // ser.close();
    // ros::shutdown();
    //rclcpp::shutdown();
@@ -326,9 +239,9 @@ void dt_control2(s16 lspeed, s16 rspeed)
 //     }
 // }
 
-void dt_go_charge_callback(const std_msgs::msg::UInt8 status)
+void dt_go_charge_callback(u8 status)
 {
-    openGoCharge(status.data);
+    openGoCharge(status);
 }
 
 void dt_error_clear()
@@ -337,22 +250,145 @@ void dt_error_clear()
     ser.write(data, 10);
 }
 
-void dt_error_clear_callback(const std_msgs::msg::UInt8::SharedPtr &error_msg)
+void dt_error_clear_callback(u8 error_msg)
 {
     dt_error_clear();
 }
 
-void dt_stop_callback(const std_msgs::msg::UInt8 status)
+void dt_stop_callback(u8 status)
 {
-    dtstop(status.data);
+    dtstop(status);
 }
 
 
 
 
+void read_uart_buffer(void *dora_context)
+{
+	
+	len = ser.available();
+	if (len >= sizeof(RXRobotData20MS.data))
+	{
+
+		ser.read(buffer, len);
+		memset(RXRobotData20MS.data, 0, sizeof(RXRobotData20MS.data));
+		for (u8 i = 0; i < sizeof(RXRobotData20MS.data); i++)
+		{
+			RXRobotData20MS.data[i] = buffer[i];
+		}
+		u16 TempCheck = 0;
+		for(u8 i=0;i<sizeof(RXRobotData20MS.data)-2;i++)
+		{
+			TempCheck += RXRobotData20MS.data[i];
+		}
+
+		// 头和校验正确
+		if (RXRobotData20MS.prot.Header == HEADER && RXRobotData20MS.prot.Check == TempCheck && RXRobotData20MS.prot.Cmd == 0x81)
+		{
+			len_time = 0;
+			for (int i = 0; i < sizeof(RXMode1.data); i++)
+			{
+				if (control_mode == 1)
+				{
+					RXMode1.data[i] = RXRobotData20MS.prot.data[i];
+				}
+				else if (control_mode == 2)
+				{
+					RXMode2.data[i] = RXRobotData20MS.prot.data[i];
+				}
+			}
+
+			// 消息赋值
+			if (control_mode == 1)
+			{
+				dt1_msg.vx = RXMode1.prot.Vx;
+				dt1_msg.vz = RXMode1.prot.Vz;
+				dt1_msg.voltage = RXMode1.prot.Voltage;
+				dt1_msg.state = RXMode1.prot.State;
+				//pub1->publish(dt1_msg);
+
+				//std::cout<<"  position_x:  "<<position_x<<"  position_y:  "<<position_y<<"   position_w: " <<position_w<<std::endl; 
+				std::cout<<"  linear_x:  "<<dt1_msg.vx<<"  position_y:  "<<0<<"   linear_w: " <<dt1_msg.vz<<std::endl; 
+				 
+				json j_odom_pub;
+			
+				j_odom_pub["pose"]["position"]["x"] = 0;
+				j_odom_pub["pose"]["position"]["y"] = 0;
+				j_odom_pub["pose"]["position"]["z"] = 0;
+			
+				j_odom_pub["pose"]["orientation"]["x"] = 0;
+				j_odom_pub["pose"]["orientation"]["y"] = 0;
+				j_odom_pub["pose"]["orientation"]["z"] = 0;
+				j_odom_pub["pose"]["orientation"]["w"] = 1;
+			
+				j_odom_pub["twist"]["linear"]["x"] = dt1_msg.vx;
+				j_odom_pub["twist"]["linear"]["y"] = 0;
+				j_odom_pub["twist"]["linear"]["z"] = 0;
+			
+				j_odom_pub["twist"]["angular"]["x"] = 0;
+				j_odom_pub["twist"]["angular"]["y"] = 0;
+				j_odom_pub["twist"]["angular"]["z"] = dt1_msg.vz;
+			
+			
+				// 将 JSON 对象序列化为字符串
+				std::string json_string = j_odom_pub.dump(4); // 参数 4 表示缩进宽度
+				// 将字符串转换为 char* 类型
+				char *c_json_string = new char[json_string.length() + 1];
+				strcpy(c_json_string, json_string.c_str());
+				std::string out_id = "Odometry";
+				// std::cout<<json_string;
+				int result = dora_send_output(dora_context, &out_id[0], out_id.length(), c_json_string, std::strlen(c_json_string));
+				if (result != 0)
+				{
+					std::cerr << "failed to send output" << std::endl;
+				}
+
+				memset(RXMode1.data, 0, sizeof(RXMode1.data));
+			}
+			else if (control_mode == 2)
+			{
+				dt2_msg.lspeed = RXMode2.prot.LSpeed;
+				dt2_msg.rspeed = RXMode2.prot.RSpeed;
+				dt2_msg.ladden = RXMode2.prot.LAddEN;
+				dt2_msg.radden = RXMode2.prot.RAddEN;
+				dt2_msg.voltage = RXMode2.prot.Voltage;
+				dt2_msg.state = RXMode2.prot.State;
+				//pub2->publish(dt2_msg);
+ 
+				memset(RXMode2.data, 0, sizeof(RXMode2.data));
+			}
+		}
+		else
+		{
+			printf("not read accuracy,SUM:%02X,Check:%02X\n\n",TempCheck,RXRobotData20MS.prot.Check );
+			len = ser.available();
+			// 清空数据残余
+			if (len > 0 && len < 200)
+			{
+				ser.read(data, len);
+			}
+			else
+			{
+				ser.read(data, 200);
+			}
+			len_time = 0;
+		}
+	}
+	else
+	{
+		len_time++;
+		if (len_time > 100)
+		{
+			printf("len_time:%d\n",len_time);
+			len_time = 0;
+			open20ms(control_mode);
+			printf("ros dt open 20cm\n");               
+		}
+	}         
+}
 
 int run(void *dora_context);
-void cmd_vel_callback(float speed_x,float speed_y,float speed_w);
+void cmd_vel_callback(char *data,size_t data_len);
 
 int main()
 {
@@ -426,7 +462,8 @@ int run(void *dora_context)
             read_dora_input_id(event, &id, &id_len);
 			//cout<<"id_len: "<<id_len<<endl;
 
-			read_uart_buffer();
+			//read buffer and publish odometry
+			read_uart_buffer(dora_context);
  
 
             if (strncmp(id, "CmdVelTwist",11) == 0)
@@ -434,39 +471,7 @@ int run(void *dora_context)
 				char *data;
 				size_t data_len;
 				read_dora_input_data(event, &data, &data_len);
-
-				json j_cmd_vel;
-				// 将数据转化为字符串
-				std::string data_str(data, data_len);
-				try 
-				{
-					j_cmd_vel = json::parse(data_str); // 解析 JSON 字符串               
-				} 
-				catch (const json::parse_error& e) 
-				{
-					std::cerr << "JSON 解析错误：" << e.what() << std::endl; // 处理解析失败的情况
-					//free_dora_event(event);
-				}
-				
-				count_1++;
-				struct timeval tv;
-				gettimeofday(&tv, NULL);
-
-				cout << "Twist event count: "<<count_1<<" data_seq "<< j_cmd_vel["seq"]<<" time is: " << 
-					 std::fixed << std::setprecision(9) << tv.tv_sec +tv.tv_usec*1e-9<<" s " <<std::endl;
-				std::cout << "<----print---->" <<j_cmd_vel<< std::endl;
-				cmdvel_twist.header.frame_id = j_cmd_vel["header"]["frame_id"];
-				cmdvel_twist.header.seq = 	j_cmd_vel ["header"]["seq"];
-				cmdvel_twist.header.sec = j_cmd_vel["header"]["stamp"]["sec"];
-				cmdvel_twist.header.nanosec = j_cmd_vel["header"]["stamp"]["nanosec"];
-				cmdvel_twist.linear.x = j_cmd_vel["linear"]["x"];
-				cmdvel_twist.linear.y = j_cmd_vel["linear"]["y"];
-				// cmdvel_twist.linear.z = j_cmd_vel["linear"]["z"];
-				// cmdvel_twist.angular.x = j_cmd_vel["angular"]["x"];
-				// cmdvel_twist.angular.y = j_cmd_vel["angular"]["y"];
-				cmdvel_twist.angular.z = j_cmd_vel["angular"]["z"];
-				 
-				cmd_vel_callback(cmdvel_twist.linear.x,cmdvel_twist.linear.y,cmdvel_twist.angular.z);
+				cmd_vel_callback(data,data_len);
 			}
       }
       else if (ty == DoraEventType_Stop)
@@ -484,21 +489,52 @@ int run(void *dora_context)
 }
 
 
-void cmd_vel_callback(float speed_x,float speed_y,float speed_w)
+void cmd_vel_callback(char *data,size_t data_len)
 {
+	json j_cmd_vel;
+	// 将数据转化为字符串
+	std::string data_str(data, data_len);
+	try 
+	{
+		j_cmd_vel = json::parse(data_str); // 解析 JSON 字符串               
+	} 
+	catch (const json::parse_error& e) 
+	{
+		std::cerr << "JSON 解析错误：" << e.what() << std::endl; // 处理解析失败的情况
+		//free_dora_event(event);
+	}
+	
+	count_1++;
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+
+	cout << "Twist event count: "<<count_1<<" data_seq "<< j_cmd_vel["seq"]<<" time is: " << 
+			std::fixed << std::setprecision(9) << tv.tv_sec +tv.tv_usec*1e-9<<" s " <<std::endl;
+	std::cout << "<----print---->" <<j_cmd_vel<< std::endl;
+	cmdvel_twist.header.frame_id = j_cmd_vel["header"]["frame_id"];
+	cmdvel_twist.header.seq = 	j_cmd_vel ["header"]["seq"];
+	cmdvel_twist.header.sec = j_cmd_vel["header"]["stamp"]["sec"];
+	cmdvel_twist.header.nanosec = j_cmd_vel["header"]["stamp"]["nanosec"];
+	cmdvel_twist.linear.x = j_cmd_vel["linear"]["x"];
+	cmdvel_twist.linear.y = j_cmd_vel["linear"]["y"];
+	// cmdvel_twist.linear.z = j_cmd_vel["linear"]["z"];
+	// cmdvel_twist.angular.x = j_cmd_vel["angular"]["x"];
+	// cmdvel_twist.angular.y = j_cmd_vel["angular"]["y"];
+	cmdvel_twist.angular.z = j_cmd_vel["angular"]["z"];
   
-	cout << "speed_x: "<<speed_x << "  speed_y: "<<speed_y<< "  speed_w: "<<speed_w<< endl;
+	cout << "speed_x: "<<cmdvel_twist.linear.x 
+		 << "  speed_y: "<<cmdvel_twist.linear.y<< "  speed_w: "<<cmdvel_twist.angular.z<< endl;
 	
 	if (control_mode == 1)
     {
-        dt_control1(speed_x* 1000,speed_w);
+        dt_control1(cmdvel_twist.linear.x* 1000,cmdvel_twist.angular.z);
     }
     else if (control_mode == 2)
     {
         s16 TempLSpeed = 0, TempRSpeed = 0;
 
-        TempLSpeed = speed_x * 1000  - speed_w* Base_Width / 2.0;
-        TempRSpeed = speed_x * 1000 + speed_w* Base_Width / 2.0;
+        TempLSpeed = cmdvel_twist.linear.x * 1000  - cmdvel_twist.angular.z* Base_Width / 2.0;
+        TempRSpeed = cmdvel_twist.linear.x * 1000 + cmdvel_twist.angular.z* Base_Width / 2.0;
         dt_control2(TempLSpeed, TempRSpeed);
     }
  

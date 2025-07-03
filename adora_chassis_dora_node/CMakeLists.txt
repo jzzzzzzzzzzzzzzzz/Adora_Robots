@@ -51,9 +51,9 @@ include_directories(
 )
 
 
-add_executable(adoraa1mini src/adoraa1mini_dora_node_V1.cc 
+add_executable(adoraa1mini_node src/adoraa1mini_dora_node_V1.cc 
 )
-target_link_libraries(adoraa1mini
+target_link_libraries(adoraa1mini_node
   ${EIGEN_LIBRARIES}
   ${YAMLCPP_LIBRARIES}
   #$ENV{HOME}/dora/target/debug/libdora_node_api_cxx.a
@@ -65,5 +65,32 @@ target_link_libraries(adoraa1mini
   pthread
 )
 
+add_executable(adoraa1pro_node src/mickx4_bringup_v3.cc 
+)
+target_link_libraries(adoraa1pro_node
+  ${EIGEN_LIBRARIES}
+  ${YAMLCPP_LIBRARIES}
+  #$ENV{HOME}/dora/target/debug/libdora_node_api_cxx.a
+  $ENV{HOME}/dora/target/release/libdora_node_api_c.a
+  /home/crp/dora_project/dora_mickrobot/thridpart_lib/serial/build/libserial.so
+  m
+  rt
+  dl 
+  pthread
+)
+
+add_executable(adoraa2mini_node src/adoraa1mini_dora_node_V1.cc 
+)
+target_link_libraries(adoraa2mini_node
+  ${EIGEN_LIBRARIES}
+  ${YAMLCPP_LIBRARIES}
+  #$ENV{HOME}/dora/target/debug/libdora_node_api_cxx.a
+  $ENV{HOME}/dora/target/release/libdora_node_api_c.a
+  /home/crp/dora_project/dora_mickrobot/thridpart_lib/serial/build/libserial.so
+  m
+  rt
+  dl 
+  pthread
+)
 
  
