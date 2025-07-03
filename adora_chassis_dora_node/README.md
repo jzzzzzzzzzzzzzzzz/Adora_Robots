@@ -16,7 +16,7 @@ and the ROS2 is necessary.
 **step2**：unzip and build  thridpart_lib serial
 
 ```
-cd dora_mickrobot\thridpart_lib
+cd adora_chassis_dora_node\thridpart_lib
 unzip  serial.zip
 cd serial 
 mkdir build
@@ -27,7 +27,7 @@ sudo make install
 **step3**： build chassis node 
 
 ```
-cd adoraa1mini_dora_bringup
+cd adora_chassis_dora_node
 mkdir build
 cmake ..
 make
@@ -42,13 +42,13 @@ sudo chmod 777 /dev/ttyUSB0
 step5： start  chassis node with  Dora 
 
 ```
-dora start  adora1mini_dataflow.yml --name test
+dora start  adora2mini_dataflow.yml --name test
 ```
 
 ### show chassis logs
 
 ```
- dora logs test $node_name
+ dora logs test adoraa2mini_node
 ```
 
 ### Chassis receiving/publishing message 

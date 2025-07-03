@@ -9,9 +9,9 @@ nodes:
       outputs:
         - CmdVelTwist
 
-  - id: adoraa1mini   
+  - id: adoraa2mini_node   
     custom:
-      source: build/adoraa1mini
+      source: build/adoraa2mini_node
       inputs:
         CmdVelTwist:
           source: keyboard/CmdVelTwist
