@@ -167,7 +167,7 @@ static void dtstop(u8 data)
 }
 
 // 当关闭包时调用，关闭
-void static mySigIntHandler(int sig)
+void static mySigIntHandler(void)
 {
     printf("close the com serial!\n");
     open20ms(0);
@@ -435,7 +435,7 @@ int main()
  	auto dora_context = init_dora_context_from_env();
 	auto ret = run(dora_context);
 	free_dora_context(dora_context);
-
+	mySigIntHandler();
 	std::cout << "Exit Adora mini node ..." << std::endl;
 	return ret;
 }
