@@ -48,6 +48,7 @@ json j_pose;
 uint32_t count_1=0,count_2;
 Geomsgs_Twist cmdvel_twist; // 
 
+uint32_t counter_odom_pub = 0;
 
 /*************************************************************************/
  
@@ -170,7 +171,7 @@ void static mySigIntHandler(int sig)
 {
     printf("close the com serial!\n");
     open20ms(0);
-	std::this_thread::sleep_for(std::chrono::milliseconds(200));
+	//std::this_thread::sleep_for(std::chrono::milliseconds(200));
     //sleep(1);
     // ser.close();
    // ros::shutdown();
@@ -309,9 +310,13 @@ void read_uart_buffer(void *dora_context)
 
 				//std::cout<<"  position_x:  "<<position_x<<"  position_y:  "<<position_y<<"   position_w: " <<position_w<<std::endl; 
 				std::cout<<"  linear_x:  "<<dt1_msg.vx<<"  position_y:  "<<0<<"   linear_w: " <<dt1_msg.vz<<std::endl; 
-				 
+				struct timeval tv;
+				gettimeofday(&tv, NULL); 
 				json j_odom_pub;
-			
+				j_odom_pub["header"]["frame_id"] = "odom";
+				j_odom_pub ["header"]["seq"] = counter_odom_pub++;
+				j_odom_pub["header"]["stamp"]["sec"] = tv.tv_sec;
+				j_odom_pub["header"]["stamp"]["nanosec"] = tv.tv_usec*1e3;
 				j_odom_pub["pose"]["position"]["x"] = 0;
 				j_odom_pub["pose"]["position"]["y"] = 0;
 				j_odom_pub["pose"]["position"]["z"] = 0;

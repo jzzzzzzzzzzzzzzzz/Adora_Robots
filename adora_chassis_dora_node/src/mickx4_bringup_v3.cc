@@ -51,7 +51,7 @@ float RC_MIN = 0, RC_MAX = 2500, RC_K = 1; //遥控器摇杆通道输出的最�
 
 chassis mickv3_chassis;
 
- 
+uint32_t counter_odom_pub = 0;
 union INT32Data //union的作用为实现char数组和int32之间的转换
 {
     int32_t int32_dat;
@@ -552,6 +552,13 @@ void calculate_chassisDiffX4_position_for_odometry(void *dora_context)
   //publish_odomtery( node ,odom_pub,path_pub,position_x,position_y,position_w,linear_x,linear_y,linear_w);
  
 	json j_odom_pub;
+
+
+	j_odom_pub["header"]["frame_id"] = "odom";
+	j_odom_pub ["header"]["seq"] = counter_odom_pub++;
+	j_odom_pub["header"]["stamp"]["sec"] = tv_curr.tv_sec;
+	j_odom_pub["header"]["stamp"]["nanosec"] = tv_curr.tv_usec*1e3;
+
 
 	j_odom_pub["pose"]["position"]["x"] = position_x;
 	j_odom_pub["pose"]["position"]["y"] = position_y;
