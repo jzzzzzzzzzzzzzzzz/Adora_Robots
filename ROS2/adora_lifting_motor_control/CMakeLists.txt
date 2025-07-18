@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(serialliftingmotor)
+project(adora_lifting_motor_control)
 
 if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 14)
@@ -37,9 +37,9 @@ endif()
 
 
 
-add_executable(serialliftingmotor_node src/serialliftingmotor.cpp)
+add_executable(adora_lifting_motor_control_node src/serialliftingmotor.cpp)
 
-ament_target_dependencies(serialliftingmotor_node 
+ament_target_dependencies(adora_lifting_motor_control_node 
 rclcpp 
 std_msgs
 sensor_msgs
@@ -49,7 +49,7 @@ tf2_geometry_msgs
 serial
 )
 
-install(TARGETS serialliftingmotor_node
+install(TARGETS adora_lifting_motor_control_node
 DESTINATION lib/${PROJECT_NAME}
 )
 

@@ -17,7 +17,7 @@ Adora机器人头部节点
 
 对**adora_head_node.py** 文件中四个参数默认值进行修改。
 
-![img](fig\fig2.png)
+![img](fig/fig2.png)
 
  
 
@@ -31,7 +31,7 @@ ros2  run adora_head_control controller
 
 节点正常启动以后会输出电机反馈的角度位置
 
-![img](fig\fig1.png)
+![img](fig/fig1.png)
 
 该节点接收话题**“adora_robot/head/servo_cmd**”数据，并通过话题 “**adora_robot/head/head_state**” 发布舵机角度和状态。
 
@@ -87,21 +87,21 @@ python show_all_motor_position.py
 
  终端会打印水平旋转和俯仰轴舵机的数值，记录如下信息：
 
-![img](fig\fig3.png)
+![img](fig/fig3.png)
 
 1、将俯仰方向舵机（ID=1）手动掰到最下（头朝下的极限位置），记录舵机输出**最大值**。
 
-<img src="fig\fig4.jpg" alt="img" style="zoom:50%;" />
+<img src="fig/fig4.jpg" alt="img" style="zoom:50%;" />
 
  
 
 2、将俯仰方向舵机（ID=1）手动掰到最上（头朝上的极限位置），记录舵机输出**最小值**。
 
-<img src="fig\fig5.jpg" alt="img" style="zoom:50%;" />
+<img src="fig/fig5.jpg" alt="img" style="zoom:50%;" />
 
 3、记录水平旋转轴舵机头朝前的位置，（水平中、俯仰的中位）。记录ID1和ID2舵机数值记录为中位值。  
 
-<img src="fig\fig6.jpg" alt="img" style="zoom:50%;" />
+<img src="fig/fig6.jpg" alt="img" style="zoom:50%;" />
 
  
 

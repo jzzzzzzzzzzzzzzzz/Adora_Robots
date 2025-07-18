@@ -53,22 +53,31 @@ public:
         baud = 19200 ;
         MIN_MOTOR_POSITION = 0;
         MAX_MOTOR_POSITION = 36044800;//勿修改！！！
-        sub_cmdvel_topic = "/serial_lifting_motor/cmd_position";
-        pub_position_topic = "/serial_lifting_motor/position";
+        
+        sub_cmdvel_topic = "/adora/lifting_motor/cmd";
+        pub_position_topic = "/adora/lifting_motor/states";
 
-		declare_parameter<std::string>("sub_cmdvel_topic",sub_cmdvel_topic);
-		declare_parameter<std::string>("pub_position_topic",pub_position_topic);
 	 
-		declare_parameter<std::string>("dev",dev_);
-		declare_parameter<int>("baud",baud);
+		this->declare_parameter<std::string>("dev",dev_);
+		this->declare_parameter<int>("baud",baud);
 		//declare_parameter<int>("time_out",time_out);
 		//declare_parameter<int>("hz",hz);
-		declare_parameter<double>("delay", delay);
+		this->declare_parameter<int>("delay", delay);
+		this->declare_parameter<std::string>("sub_cmdvel_topic", sub_cmdvel_topic);
+		this->declare_parameter<std::string>("pub_position_topic", pub_position_topic);
 
+
+        this->get_parameter("dev", dev_);
+        this->get_parameter("baud", baud);
+        this->get_parameter("delay", delay);
+        this->get_parameter("sub_cmdvel_topic", sub_cmdvel_topic);
+        this->get_parameter("pub_position_topic", pub_position_topic);
+		
+        RCLCPP_INFO_STREAM(this->get_logger(),"dev:   "<<dev_);
+		RCLCPP_INFO_STREAM(this->get_logger(),"baud:   "<<baud);
 		RCLCPP_INFO_STREAM(this->get_logger(),"sub_cmdvel_topic:   "<< sub_cmdvel_topic);
 		RCLCPP_INFO_STREAM(this->get_logger(),"pub_position_topic:   "<< pub_position_topic);
-		RCLCPP_INFO_STREAM(this->get_logger(),"dev:   "<<dev_);
-		RCLCPP_INFO_STREAM(this->get_logger(),"baud:   "<<baud);
+
  
 		command_sub = this->create_subscription<std_msgs::msg::UInt32>(sub_cmdvel_topic, 10
                             ,std::bind(&SerialLiftingMotor::cmd_vel_callback,this,std::placeholders::_1));
