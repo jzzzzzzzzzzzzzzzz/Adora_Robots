@@ -39,10 +39,10 @@
 
 #include "ros_dt_msg.h"
 #include "ros_dt_control.h"
-#include "adoraa1mini_bringup/msg/control1.hpp"
-#include "adoraa1mini_bringup/msg/dt1.hpp" //要用到 msg 中定义的数据类型
-#include "adoraa1mini_bringup/msg/dt2.hpp"
-#include "adoraa1mini_bringup/msg/error.hpp"
+#include "adora_msgs/msg/control1.hpp"
+#include "adora_msgs/msg/dt1.hpp" //要用到 msg 中定义的数据类型
+#include "adora_msgs/msg/dt2.hpp"
+#include "adora_msgs/msg/error.hpp"
 
 
 using namespace std;
@@ -246,21 +246,21 @@ int main(int argc, char **argv)
 
 	signal(SIGINT, mySigIntHandler);                                                                 // 把原来ctrl+c中断函数覆盖掉，把信号槽连接到mySigIntHandler保证关闭节点
 
-    adoraa1mini_bringup::msg::Dt1 dt1_msg;
-    adoraa1mini_bringup::msg::Control1 control_msg;
+    adora_msgs::msg::Dt1 dt1_msg;
+    adora_msgs::msg::Control1 control_msg;
 
     //ros::Publisher pub1 = nh.advertise<ros_dt_msg::dt1>("DT_Robot_agv1", 10); // 创建 publisher 对象
     //ros::Subscriber dt_control_sub = nh.subscribe("/cmd_vel", 100, dt_control_callback);
-	rclcpp::Publisher<adoraa1mini_bringup::msg::Dt1>::SharedPtr pub1
-							= node->create_publisher<adoraa1mini_bringup::msg::Dt1>("/DT_Robot_agv1",20); 
+	rclcpp::Publisher<adora_msgs::msg::Dt1>::SharedPtr pub1
+							= node->create_publisher<adora_msgs::msg::Dt1>("/DT_Robot_agv1",20); 
 	rclcpp::Subscription<geometry_msgs::msg::Twist::ConstPtr >::SharedPtr dt_control_sub 
 							= node->create_subscription<geometry_msgs::msg::Twist::ConstPtr >("/cmd_vel", 10,dt_control_callback);
 
 
-    adoraa1mini_bringup::msg::Dt2 dt2_msg;
+    adora_msgs::msg::Dt2 dt2_msg;
     //ros::Publisher pub2 = nh.advertise<ros_dt_msg::dt2>("DT_Robot_agv2", 10); // 创建 publisher 对象
-	rclcpp::Publisher<adoraa1mini_bringup::msg::Dt2>::SharedPtr pub2
-							= node->create_publisher<adoraa1mini_bringup::msg::Dt2>("DT_Robot_agv2",20); 
+	rclcpp::Publisher<adora_msgs::msg::Dt2>::SharedPtr pub2
+							= node->create_publisher<adora_msgs::msg::Dt2>("DT_Robot_agv2",20); 
     try
     {
         // 设置串口属性，并打开串口
