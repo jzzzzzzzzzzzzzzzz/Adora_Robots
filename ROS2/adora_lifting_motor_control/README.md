@@ -20,5 +20,6 @@ ros2 topic pub -r 100 /adora/lifting_motor/cmd std_msgs/msg/UInt32 "{data: 32768
 
 节点启动以后会向外发一个话题 “ **/adora/lifting_motor/states”**，该话题的数据类型为 “ **std_msgs/msg/UInt32”**  代表电机编码器反馈的数值。
 
+丝杠电机供电电压为12V，丝杠的零位位于靠近电机侧位置，如下图所示
 
-
+<img src="C:\git\Adora_Robots\ROS2\adora_lifting_motor_control\reference\lifting_fig1.png" alt="lifting_fig1" style="zoom:50%;" />
