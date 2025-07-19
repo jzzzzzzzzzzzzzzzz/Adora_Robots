@@ -38,8 +38,12 @@
 #include <serial/serial.h> //ROS已经内置了的串口包
 
  
+ //其中数值 3276800 表示电机转动100圈，电机转动1圈的数值是32768.
+uint32_t MIN_MOTOR_POSITION = 0;
+uint32_t MAX_MOTOR_POSITION = 36044800;//勿修改！！！
+float Ratio_K_1 = 0.63636364; // 电机每转动一圈丝杆行进的距离（单位 mm ） 32768*1100(圈) = 36044800 对应700mm行程的丝杠， 
+float Ratio_K_2 = 32768; // 电机转动1圈的编码器反馈的数值是32768
 
- 
 using namespace std;
  
 class SerialLiftingMotor : public rclcpp::Node
@@ -51,9 +55,7 @@ public:
        // 参数声明和获取
         dev_ = "/dev/ttyACM0";
         baud = 19200 ;
-        MIN_MOTOR_POSITION = 0;
-        MAX_MOTOR_POSITION = 36044800;//勿修改！！！
-        
+       
         sub_cmdvel_topic = "/adora/lifting_motor/cmd";
         pub_position_topic = "/adora/lifting_motor/states";
 
@@ -128,8 +130,7 @@ private:
     rclcpp::Publisher<std_msgs::msg::UInt32>::SharedPtr position_pub;
     rclcpp::TimerBase::SharedPtr timer_;
 
-    uint32_t MIN_MOTOR_POSITION;
-    uint32_t MAX_MOTOR_POSITION;
+ 
     uint8_t auchCRCHi[256] = //CRC 高位字节值表 
     { 
         0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81,
@@ -183,8 +184,14 @@ private:
 
     void cmd_vel_callback(const std_msgs::msg::UInt32 msg)
 	{
-		printf("motor control value: %d\n",msg.data);
-        motor_position_set(msg.data);
+		printf("motor control value (mm): %d\n",msg.data);
+        
+        // 丝杠起点位置： 0 
+        // 丝杠终点位置： 32768*1100(圈) = 36044800 对应700mm行程的丝杠， 0.63636363
+        // 其中32768是电机外部的转轴转动一圈的值。
+        // 700mm/0.63636363*32768
+        float tem_value = msg.data/Ratio_K_1*Ratio_K_2;
+        motor_position_set(tem_value/1);
 	} 
  
 	void read_uart_buffer(void)
@@ -211,8 +218,11 @@ private:
             tem_INT32Data.byte_data[1] = uart_buffer[3];
             tem_INT32Data.byte_data[2] = uart_buffer[6];
             tem_INT32Data.byte_data[3] = uart_buffer[5];
+            
+            uint32_t tem_distance = (tem_INT32Data.int32_dat/Ratio_K_2*Ratio_K_1)/1;
+            printf("position: %d  ,distance:(mm) %d \n", tem_INT32Data.int32_dat,tem_distance);
 
-            printf("position: %d  \n", tem_INT32Data.int32_dat);
+            position_pub->publish(tem_distance);
         }
 
         // for next time
