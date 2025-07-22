@@ -1,0 +1,28 @@
+# adora_teleop.yml
+nodes:
+  # 1. 我们的交互式键盘遥控节点的“插槽”
+  - id: keyboard_teleop
+    build: pip install -e ./keyboard_teleop
+    path: dynamic 
+    outputs:
+      - CmdVelTwist
+
+  # 2. Adora 底盘核心服务节点
+  - id: adora_chassis_node
+    custom:
+      # source 指向我们编译好的、正确的 Adora C++ 程序
+      source: ./build/adoraa2mini_node # 或者用包装器脚本 run_cpp_node.sh
+      inputs:
+        # 它从我们的动态键盘节点接收指令
+        CmdVelTwist: keyboard_teleop/CmdVelTwist
+      outputs:
+        - Odometry
+
+  # 3. 我们的状态显示节点的“插槽”
+  - id: odom_viewer
+    path: dynamic
+    build: pip install -e ./keyboard_teleop
+    inputs:
+      odom_stream: adora_chassis_node/Odometry
+
+ 

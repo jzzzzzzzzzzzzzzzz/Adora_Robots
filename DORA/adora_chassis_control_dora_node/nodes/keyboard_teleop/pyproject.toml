@@ -1,0 +1,15 @@
+[project]
+name = "mickrobot-keyboard-teleop"
+version = "0.1.0"
+dependencies = [
+    "dora-rs==0.3.8", # 明确版本依赖
+    "readchar"
+]
+
+[project.scripts]
+# 这个名字将是我们手动运行的命令
+keyboard-teleop-run = "keyboard_teleop.main:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"

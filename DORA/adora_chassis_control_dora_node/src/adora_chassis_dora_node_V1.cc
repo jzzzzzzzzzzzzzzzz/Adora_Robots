@@ -37,7 +37,7 @@ using namespace std;
 
  
 
-serial::Serial ros_ser;
+// serial::Serial ros_ser;
 
  
 
@@ -55,10 +55,10 @@ uint32_t counter_odom_pub = 0;
 #define Base_Width 348 // 轴距
 
 serial::Serial ser; // 声明串口对象
-int control_mode = 0;//1开启线速度、角速度反馈模式  2开启速度反馈模式,在launch文件设置
+int control_mode = 1;//1开启线速度、角速度反馈模式  2开启速度反馈模式,在launch文件设置
 
 // 初始化串口
-string usart_port = "/dev/ttyUSB0";
+string usart_port = "/dev/ttyACM1";
 int baud_data = 115200;
 int time_out = 1000;
 
@@ -423,7 +423,8 @@ int main()
 	if (ser.isOpen())
 	{
 		// ser.flushInput(); // 清空输入缓存,把多余的无用数据删除
-		printf("Serial Port initialized");
+		printf("Serial Port initialized ok");
+		std::cout << "Serial port opened ok." << std::endl << std::flush;
 	}
 	else
 	{
@@ -505,7 +506,7 @@ void cmd_vel_callback(char *data,size_t data_len)
 	} 
 	catch (const json::parse_error& e) 
 	{
-		std::cerr << "JSON 解析错误：" << e.what() << std::endl; // 处理解析失败的情况
+		std::cerr << "JSON 解析错误：" << e.what() << std::endl << std::flush; // 处理解析失败的情况
 		//free_dora_event(event);
 	}
 	
@@ -514,7 +515,7 @@ void cmd_vel_callback(char *data,size_t data_len)
 	gettimeofday(&tv, NULL);
 
 	cout << "Twist event count: "<<count_1<<" data_seq "<< j_cmd_vel["seq"]<<" time is: " << 
-			std::fixed << std::setprecision(9) << tv.tv_sec +tv.tv_usec*1e-9<<" s " <<std::endl;
+			std::fixed << std::setprecision(9) << tv.tv_sec +tv.tv_usec*1e-9<<" s " <<std::endl << std::flush;
 	std::cout << "<----print---->" <<j_cmd_vel<< std::endl;
 	cmdvel_twist.header.frame_id = j_cmd_vel["header"]["frame_id"];
 	cmdvel_twist.header.seq = 	j_cmd_vel ["header"]["seq"];

@@ -65,5 +65,6 @@
         "valarray": "cpp",
         "variant": "cpp",
         "bit": "cpp"
-    }
+    },
+    "cmake.sourceDirectory": "/data/dora/Adora_Robots/DORA/adora_chassis_control_dora_node"
 }
