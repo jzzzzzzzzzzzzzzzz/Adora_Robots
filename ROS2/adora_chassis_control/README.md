@@ -1,11 +1,21 @@
 ## adora_chassis_bringup 
 
-### ROS节点
+## Adora A2 max (ROS2节点)
 
-该节点为底盘启动将节点
+启动A2 mini 底盘节点
 
 ```
-ros2 launch adora_chassis_bringup adora_a2_pro.launch.py 
+ros2 launch adora_chassis_bringup adora_a2_max_ros2.launch.py
+```
+
+ 
+
+### Adora A2 mini (ROS2节点)
+
+启动A2 mini 底盘节点
+
+```
+ros2 launch adora_chassis_bringup adora_a2_mini_ros2.launch.py
 ```
 
 参数解释：
