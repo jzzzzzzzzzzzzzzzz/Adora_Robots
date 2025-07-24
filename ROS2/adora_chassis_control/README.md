@@ -1,16 +1,43 @@
 ## adora_chassis_bringup 
 
-## Adora A2 max (ROS2节点)
+## 1  Adora A2 max 
 
+### 1.1  Adora A2 max  (ROS2节点)
 启动A2 mini 底盘节点
 
 ```
 ros2 launch adora_chassis_bringup adora_a2_max_ros2.launch.py
 ```
 
- 
+ 在启动ROS包后，可以通过以下命令查看ROS包发布的话题内容。
 
-### Adora A2 mini (ROS2节点)
+-  查看原始数据   ros2 topic echo /dt/buff_info
+- 查看回充状态  ros2 topic echo /dt/charge_info
+- 查看电机电流  ros2 topic echo /dt/current_info
+- 查看出货日期 ros2 topic echo /dt/date_info
+- 查看驱动器错误 ros2 topic echo /dt/drive_error_info
+- 查看硬件版本  ros2 topic echo /dt/hardware_version_info
+- 查看底盘参数  ros2 topic echo /dt/parameter_info
+- 查看遥控数据  ros2 topic echo /dt/remote_ctrl_info
+- 查看软件版本  ros2 topic echo /dt/software_version_info
+- 查看底盘状态  ros2 topic echo /dt/state_info
+- 查看里程信息  ros2 topic echo /dt/odom_info
+
+
+### 1.2 通过话题控制Adora A2 max小车
+
+将遥控器SWB 摇杆拨到中间位置进入上位机遥控模式。 然后，新建终端，通过ROS话题向/adora_robot/chassis/cmd_vel 话题发布数据 控制小车移动（注意 将遥控器左上角拨码开关拨到最上，表示开启自动驾驶模式）
+
+```
+ros2 topic pub -r 10 /adora_robot/chassis/velocity_ctrl geometry_msgs/msg/Twist "{
+  linear: {x: 0.0, y: 0.0, z: 0.0},
+  angular: {x: 0.0, y: 0.0, z: 0.5}
+}"
+```
+
+角速度方向： 逆时针为正，速度方向：车头方向为x方向。
+## 2  Adora A2 mini 底盘
+### 2.1  Adora A2 mini (ROS2节点)
 
 启动A2 mini 底盘节点
 
@@ -39,7 +66,7 @@ control_mode：车辆底盘控制模式
 
 其中，移动机器人接收话题 /adora_robot/chassis/cmd_vel 的控制指令，消息类型为 geometry_msgs::msg::Twist 
 
-### 通过话题控制小车
+### 2.2 通过话题控制小车
 
 将遥控器SWB 摇杆拨到中间位置进入上位机遥控模式。 然后，新建终端，通过ROS话题向/adora_robot/chassis/cmd_vel 话题发布数据 控制小车移动（注意 将遥控器左上角拨码开关拨到最上，表示开启自动驾驶模式）
 
@@ -54,7 +81,7 @@ ros2 topic pub -r 10 /adora_robot/chassis/cmd_vel geometry_msgs/msg/Twist "{
 
 
 
-## 遥控器说明
+## 3 遥控器说明
 
 **电源开关**：同时长按电源按钮，开启/关闭遥控器电源。
 
