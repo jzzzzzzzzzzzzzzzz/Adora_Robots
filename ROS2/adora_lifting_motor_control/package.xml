@@ -3,7 +3,7 @@
   <name>adora_lifting_motor_control</name>
   <version>0.0.0</version>
   <description>ROS2 package using serial library</description>
-  <maintainer email="user@example.com">user</maintainer>
+  <maintainer email="cenruping@vip.qq.com">user</maintainer>
   <license>Apache-2.0</license>
   <buildtool_depend>ament_cmake</buildtool_depend>
   <build_depend>rclcpp</build_depend>
