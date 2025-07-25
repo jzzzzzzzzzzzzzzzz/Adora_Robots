@@ -50,7 +50,7 @@ class Operator:
             #dora_input_bytes = bytes(dora_input.to_pylist())
             #self.position = pickle.loads(dora_input_bytes)
             print("set motor value: ",int(motor_value))
-            self.app.motor_position_set(int(motor_value))
+            self.app.cmd_vel_callback(int(motor_value))
 
         return DoraStatus.CONTINUE
              

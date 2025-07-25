@@ -1,6 +1,6 @@
 import serial
 import time
- 
+import struct
 class SerialLiftingMotor: 
     def __init__(self):
         self.ser = None  # 串口对象
@@ -8,9 +8,14 @@ class SerialLiftingMotor:
 
         self.init_serial("/dev/ttyACM0",19200)
         self.motor_init()
+        #其中数值 3276800 表示电机转动100圈，电机转动1圈的数值是32768.
+        self.max_lifting_distance = 700
+        self.robot_name = "ADORA_A2_MAX"
+        self.Ratio_K_1 = 0.63636364 #// 电机每转动一圈丝杆行进的距离（单位 mm ） 
+        self.Ratio_K_2 = 32768 # 电机转动1圈的编码器反馈的数值是32768
 
         self.MIN_MOTOR_POSITION = 0
-        self.MAX_MOTOR_POSITION = 36044800
+        self.MAX_MOTOR_POSITION = 36044800  #//勿修改！！！ 32768*1100(圈) = 36044800 对应700mm行程的丝杠，
         self.motor_positon_read = 0
         self.motor_position_set(0)
         # 配置串口参数
@@ -63,7 +68,9 @@ class SerialLiftingMotor:
             position_bytes = bytearray()
             position_bytes.extend([uart_buffer_data[5], uart_buffer_data[6],uart_buffer_data[3], uart_buffer_data[4]]) #高位存低地址
             self.motor_positon_read = int.from_bytes(position_bytes,'big',signed = True)
-            print("position:", self.motor_positon_read)
+            print("befor position:", self.motor_positon_read)
+            self.motor_positon_read = int(self.motor_positon_read/self.Ratio_K_2*self.Ratio_K_1)/1
+            print("after position:", self.motor_positon_read)
 
 
     def motor_init(self):
@@ -195,7 +202,34 @@ class SerialLiftingMotor:
         # 发送数据
         self.ser.write(data_array_1)
 
- 
+
+    # 输入参数 uint32_msg 表示距离(单位 mm)
+    def cmd_vel_callback(self, uint32_msg):
+        tem_distance = uint32_msg
+		
+        if(tem_distance > self.max_lifting_distance):
+            tem_distance = self.max_lifting_distance-5 #//预留5mm行程
+
+        # 丝杠起点位置： 0 
+        # 丝杠终点位置： 32768*1100(圈) = 36044800 对应700mm行程的丝杠， 0.63636363
+        # 其中32768是电机外部的转轴转动一圈的值。
+        # 700mm/0.63636363*32768
+        tem_value = self.float_to_uint32(tem_distance/self.Ratio_K_1*self.Ratio_K_2)
+        print("recived distance  (mm): %d  , control value:  %2.f\n",tem_distance,tem_value)
+        self.motor_position_set(tem_value)
+
+
+    def float_to_uint32(f):
+        # 将浮点数打包为 IEEE 754 单精度格式（4字节）
+        packed = struct.pack('>f', f)
+        # 解包为 uint32
+        return struct.unpack('>I', packed)[0]
+
 if __name__ == "__main__":
     app = SerialLiftingMotor()
     app.run()
+    while True:
+        app.cmd_vel_callback(200)
+        time.sleep(20)   
+        app.cmd_vel_callback(0)
+        time.sleep(20)  

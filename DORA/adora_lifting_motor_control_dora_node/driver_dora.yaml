@@ -1,7 +1,7 @@
 nodes:
   - id: test_SerialLiftingMotor
     operator:
-      python: ./test_SerialLiftingMotor.py
+      python: ./dora_test_SerialLiftingMotor.py
       inputs:
         tick: dora/timer/millis/500
       outputs:
