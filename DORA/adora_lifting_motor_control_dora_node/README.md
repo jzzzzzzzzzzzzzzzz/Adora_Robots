@@ -1,6 +1,6 @@
-# Adora A2 Pro
+# Adora A2 Pro 丝杠节点
 
-
+注意：电机第一次使用的时候一定要先发送0位置！！！看是否到达了离底盘最近的地方，如下图中标记的零点位置。
 
 ## 1. Python节点测试
 
@@ -27,3 +27,13 @@ dora start driver_dora.yaml --name test_motor
 ```
 
 此时 丝杠会周期性的上下运动
+
+
+
+## 3 备注
+
+注意：电机第一次使用的时候一定要先发送0位置，看是否到达了离底盘最近的地方，如下图中标记的零点位置。
+
+丝杠电机供电电压为24V，丝杠的零位位于靠近电机侧位置，如下图所示
+
+<img src="reference/lifting_fig1.png" alt="lifting_fig1" style="zoom:50%;" />
