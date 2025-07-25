@@ -40,8 +40,8 @@
  
  //其中数值 3276800 表示电机转动100圈，电机转动1圈的数值是32768.
 uint32_t MIN_MOTOR_POSITION = 0;
-uint32_t MAX_MOTOR_POSITION = 36044800;//勿修改！！！
-float Ratio_K_1 = 0.63636364; // 电机每转动一圈丝杆行进的距离（单位 mm ） 32768*1100(圈) = 36044800 对应700mm行程的丝杠， 
+uint32_t MAX_MOTOR_POSITION = 36044000;//勿修改！！！ 32768*1100(圈) = 36044800 对应700mm行程的丝杠，
+float Ratio_K_1 = 0.63636364; // 电机每转动一圈丝杆行进的距离（单位 mm ） 
 float Ratio_K_2 = 32768; // 电机转动1圈的编码器反馈的数值是32768
 
 using namespace std;
@@ -61,10 +61,12 @@ public:
 
 	 
 		this->declare_parameter<std::string>("dev",dev_);
-		this->declare_parameter<int>("baud",baud);
+		this->declare_parameter<int>("baud",baud);      
 		//declare_parameter<int>("time_out",time_out);
 		//declare_parameter<int>("hz",hz);
-		this->declare_parameter<int>("delay", delay);
+		this->declare_parameter<double>("delay", delay);
+        this->declare_parameter<int>("max_lifting_distance",max_lifting_distance);
+        this->declare_parameter<std::string>("robot_name",robot_name);
 		this->declare_parameter<std::string>("sub_cmdvel_topic", sub_cmdvel_topic);
 		this->declare_parameter<std::string>("pub_position_topic", pub_position_topic);
 
@@ -72,15 +74,45 @@ public:
         this->get_parameter("dev", dev_);
         this->get_parameter("baud", baud);
         this->get_parameter("delay", delay);
+        this->get_parameter("max_lifting_distance", max_lifting_distance);
+        this->get_parameter("robot_name", robot_name);
         this->get_parameter("sub_cmdvel_topic", sub_cmdvel_topic);
         this->get_parameter("pub_position_topic", pub_position_topic);
 		
+
         RCLCPP_INFO_STREAM(this->get_logger(),"dev:   "<<dev_);
 		RCLCPP_INFO_STREAM(this->get_logger(),"baud:   "<<baud);
+        
 		RCLCPP_INFO_STREAM(this->get_logger(),"sub_cmdvel_topic:   "<< sub_cmdvel_topic);
 		RCLCPP_INFO_STREAM(this->get_logger(),"pub_position_topic:   "<< pub_position_topic);
 
- 
+         // 比较两个字符数组，最多比较 LEN 个字符
+        if(robot_name.length() >= 12)
+        {
+            if(((strncmp(robot_name.c_str(), "ADORA_A2_MAX", 12) == 0) && (max_lifting_distance == 700)) || 
+                ((strncmp(robot_name.c_str(), "ADORA_A2_PRO", 12) == 0) && (max_lifting_distance == 1100))) 
+            {
+                RCLCPP_INFO_STREAM(this->get_logger(),"robot_name:    "<<robot_name);
+                RCLCPP_INFO_STREAM(this->get_logger(),"max_lifting_distance:   "<<max_lifting_distance);
+            }
+            else
+		{
+		    RCLCPP_FATAL_STREAM(this->get_logger(),"robot_name and max_lifting_distance do not match !!!"
+		                        <<"\n robot_name "<< robot_name 
+		                        << "  max_lifting_distance " << max_lifting_distance);
+		    return ;
+		}
+        }
+        else
+        {
+            RCLCPP_FATAL_STREAM(this->get_logger(),"robot_name and max_lifting_distance do not match !!!"
+                                <<"robot_name "<< robot_name 
+                                << "max_lifting_distance" << max_lifting_distance);
+            return ;
+        }
+
+
+
 		command_sub = this->create_subscription<std_msgs::msg::UInt32>(sub_cmdvel_topic, 10
                             ,std::bind(&SerialLiftingMotor::cmd_vel_callback,this,std::placeholders::_1));
 
@@ -114,7 +146,7 @@ public:
         }
         motor_init();
 		// 设置定时调用函数，用于读取串口缓冲区
-        timer_ = create_wall_timer(10ms, std::bind(&SerialLiftingMotor::read_uart_buffer, this));
+        timer_ = create_wall_timer(20ms, std::bind(&SerialLiftingMotor::read_uart_buffer, this));
     }
 
 private:
@@ -122,6 +154,8 @@ private:
     std::string dev_;
     std::string sub_cmdvel_topic,pub_position_topic;
     int baud;
+    int max_lifting_distance = 700;
+    std::string robot_name = "ADORA_A2_MAX";
     double delay;
     serial::Serial ser;
     uint16_t uart_len = 0;
@@ -184,13 +218,18 @@ private:
 
     void cmd_vel_callback(const std_msgs::msg::UInt32 msg)
 	{
-		printf("motor control value (mm): %d\n",msg.data);
-        
+        int tem_distance = msg.data;
+		
+
+        if(tem_distance > max_lifting_distance)
+            tem_distance = max_lifting_distance-5;//预留5mm行程
+
         // 丝杠起点位置： 0 
         // 丝杠终点位置： 32768*1100(圈) = 36044800 对应700mm行程的丝杠， 0.63636363
         // 其中32768是电机外部的转轴转动一圈的值。
         // 700mm/0.63636363*32768
-        float tem_value = msg.data/Ratio_K_1*Ratio_K_2;
+        float tem_value = tem_distance/Ratio_K_1*Ratio_K_2;
+        printf("recived distance  (mm): %d  , control value:  %2.f\n",tem_distance,tem_value);
         motor_position_set(tem_value/1);
 	} 
  
@@ -205,9 +244,9 @@ private:
             return;
         }
 
-        printf("\n recived  value:  ");
-        for(int i=0;i<uart_len;i++)
-            printf("0x%X  ", uart_buffer[i]);
+        //printf("\n recived  value:  ");
+        //for(int i=0;i<uart_len;i++)
+        //    printf("0x%X  ", uart_buffer[i]);
             
         if(uart_buffer[0] == 0x01  
             && uart_buffer[1] == 0x03 

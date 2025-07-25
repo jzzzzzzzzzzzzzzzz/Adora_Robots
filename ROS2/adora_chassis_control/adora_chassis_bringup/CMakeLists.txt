@@ -10,6 +10,7 @@ set(CMAKE_INSTALL_RPATH /usr/local/lib)
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp QUIET)
+find_package(rclpy QUIET)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
@@ -20,7 +21,8 @@ find_package(tf2_geometry_msgs REQUIRED)
 
 find_package(adora_msgs REQUIRED)
 find_package(serial REQUIRED)
- 
+find_package(serial_driver REQUIRED)
+
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights
@@ -42,7 +44,7 @@ include_directories(
 
 
 
-
+# 适用于Adora-A1-Mini   Adora-A2-Pro
 add_executable(adora_chassis_bringup_node src/adora_chassis_bringup_V2.cpp)
 
 target_link_libraries(adora_chassis_bringup_node
@@ -56,20 +58,41 @@ target_link_libraries(adora_chassis_bringup_node
   rosidl_typesupport_cpp::rosidl_typesupport_cpp
 )
 
-
 ament_target_dependencies(adora_chassis_bringup_node 
-rclcpp 
-std_msgs
-sensor_msgs
-tf2
-nav_msgs
-tf2_geometry_msgs
-serial
-adora_msgs
-#${PROJECT_NAME}  # 关键链接自身消息
+  rclcpp 
+  std_msgs
+  sensor_msgs
+  tf2
+  nav_msgs
+  tf2_geometry_msgs
+  serial
+  adora_msgs
+  #${PROJECT_NAME}  # 关键链接自身消息
 )
 
-install(TARGETS adora_chassis_bringup_node
+# 适用于Adora_a2_max_node
+add_executable(adora_a2_max_node  src/adora_a2_max_ros2_node.cpp
+                                  src/adora_a2_max_control.cpp)
+target_link_libraries(adora_a2_max_node   
+  ${rclcpp_LIBRARIES}
+  ${std_msgs_LIBRARIES}
+  ${geometry_msgs_LIBRARIES})
+ament_target_dependencies(adora_a2_max_node
+  rclcpp
+  rclpy
+  geometry_msgs
+  nav_msgs
+  tf2_geometry_msgs
+  std_msgs
+  adora_msgs
+  serial_driver)
+
+#rosidl_get_typesupport_target(cpp_typesupport_target
+#  ${PROJECT_NAME} rosidl_typesupport_cpp)
+
+
+
+install(TARGETS adora_chassis_bringup_node adora_a2_max_node
 DESTINATION lib/${PROJECT_NAME}
 )
 
