@@ -11,8 +11,8 @@ def generate_launch_description():
             parameters=[
                 {'dev': '/dev/ttyACM0'},
                 {'baud': 19200},
-                {'max_lifting_distance': 700},
-                {'robot_name': 'ADORA_A2_MAX'},
+                {'max_lifting_distance': 700},#不可修改
+                {'robot_name': 'ADORA_A2_MAX'},#不可修改
                 {'sub_cmdvel_topic': '/adora/lifting_motor/cmd'},
                 {'pub_position_topic': '/adora/lifting_motor/states'}
             ]
