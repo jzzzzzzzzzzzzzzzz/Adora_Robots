@@ -6,7 +6,7 @@ import pickle
 import time
 import numpy as np
 import pyarrow as pa
-from SerialLiftingMotor import SerialLiftingMotor
+from SuctionPumpController import SuctionPumpController
  
 
 
@@ -17,8 +17,8 @@ class Operator:
 
     # 打开串口读取数据
     def __init__(self):
-        print("init SerialLiftingMotor ")
-        self.app = SerialLiftingMotor()
+        print("init SuctionPump ")
+        self.app = SuctionPumpController(port="/dev/ttyUSB0", baudrate=115200)
 
     def on_event(
         self,
@@ -34,23 +34,19 @@ class Operator:
         dora_input: dict,
         send_output: Callable[[str, bytes], None],
     ):
-        if "tick" == dora_input["id"]:
-            print("tick event")
-            self.app.motor_position_read()
-            self.app.run()
-            send_output(
-                "cur_position",
-                pa.array([self.app.motor_positon_read]),
-                dora_input["metadata"],
-            )
+         
            
-        if "cmd_position" == dora_input["id"]:
+        if "cmd_ch_state" == dora_input["id"]:
             #print("cmd_position event")
-            motor_value = dora_input["value"][0].as_py()
+            cmd_ch = dora_input["value"][0].as_py() # 通道
+            cmd_value = dora_input["value"][1].as_py() # 大于1打开继电器   0关闭
             #dora_input_bytes = bytes(dora_input.to_pylist())
             #self.position = pickle.loads(dora_input_bytes)
-            print("set motor value: ",int(motor_value))
-            self.app.cmd_vel_callback(int(motor_value))
+            print("set motor value: ",int(cmd_value))
+            if cmd_value >= 1:
+                self.app.open_channel(int(cmd_ch))
+            else:
+                self.app.close_channel(int(cmd_ch))
 
         return DoraStatus.CONTINUE
              

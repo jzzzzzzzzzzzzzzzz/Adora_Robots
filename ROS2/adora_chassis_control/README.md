@@ -1,7 +1,12 @@
 ## adora_chassis_bringup 
 
-## 1  Adora A2 max 
+测试环境为 ubuntu22.04 ROS2 humble
 
+## 1  Adora A2 max 底盘
+依赖项
+```
+sudo apt install ros-humble-asio-cmake-module
+```
 ### 1.1  Adora A2 max  (ROS2节点)
 启动A2 mini 底盘节点
 
@@ -24,7 +29,7 @@ ros2 launch adora_chassis_bringup adora_a2_max_ros2.launch.py
 - 查看里程信息  ros2 topic echo /dt/odom_info
 
 
-### 1.2 通过话题控制Adora A2 max小车
+### 1.2 通过话题控制Adora A2 max 底盘
 
 将遥控器SWB 摇杆拨到中间位置进入上位机遥控模式。 然后，新建终端，通过ROS话题向/adora_robot/chassis/cmd_vel 话题发布数据 控制小车移动（注意 将遥控器左上角拨码开关拨到最上，表示开启自动驾驶模式）
 

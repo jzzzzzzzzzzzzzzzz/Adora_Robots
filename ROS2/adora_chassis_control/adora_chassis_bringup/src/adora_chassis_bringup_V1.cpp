@@ -29,9 +29,9 @@
 #include "sensor_msgs/msg/joy.hpp"
 
 #include <tf2/LinearMath/Quaternion.h>
-#include <tf2_ros/transform_broadcaster.h> 
+#include <tf2_ros/transform_broadcaster.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <geometry_msgs/msg/transform_stamped.hpp> 
+#include <geometry_msgs/msg/transform_stamped.hpp>
 
 #include <eigen3/Eigen/Geometry>
 
@@ -44,14 +44,12 @@
 #include "adora_msgs/msg/dt2.hpp"
 #include "adora_msgs/msg/error.hpp"
 
-
 using namespace std;
-
 
 #define Base_Width 348 // 轴距
 
-serial::Serial ser; // 声明串口对象
-int control_mode = 0;//1开启线速度、角速度反馈模式  2开启速度反馈模式,在launch文件设置
+serial::Serial ser;   // 声明串口对象
+int control_mode = 0; // 1开启线速度、角速度反馈模式  2开启速度反馈模式,在launch文件设置
 /*************************************************************************/
 
 static void open20ms(u8 data)
@@ -59,13 +57,13 @@ static void open20ms(u8 data)
     switch (data)
     {
     case 0:
-		printf("close20ms");
+        printf("close20ms");
         break;
     case 1:
-		printf("open20ms1");
+        printf("open20ms1");
         break;
     case 2:
-		printf("open20ms2");
+        printf("open20ms2");
         break;
     default:
         break;
@@ -124,8 +122,8 @@ void mySigIntHandler(int sig)
     open20ms(0);
     sleep(1);
     // ser.close();
-   // ros::shutdown();
-   rclcpp::shutdown();
+    // ros::shutdown();
+    rclcpp::shutdown();
 }
 
 void dt_control1(s16 Vx, float Vz)
@@ -148,7 +146,6 @@ void dt_control1(s16 Vx, float Vz)
     }
 
     ser.write(TXRobotData1.data, sizeof(TXRobotData1.data));
-
 }
 
 void dt_control2(s16 lspeed, s16 rspeed)
@@ -171,21 +168,20 @@ void dt_control2(s16 lspeed, s16 rspeed)
     }
 
     ser.write(TXRobotData2.data, sizeof(TXRobotData2.data));
-
 }
 
 void dt_control_callback(const geometry_msgs::msg::Twist::ConstPtr &twist_aux)
 {
     if (control_mode == 1)
     {
-        dt_control1(twist_aux->linear.x* 1000,twist_aux->angular.z);
+        dt_control1(twist_aux->linear.x * 1000, twist_aux->angular.z);
     }
     else if (control_mode == 2)
     {
         s16 TempLSpeed = 0, TempRSpeed = 0;
 
-        TempLSpeed = twist_aux->linear.x * 1000  - twist_aux->angular.z* Base_Width / 2.0;
-        TempRSpeed = twist_aux->linear.x * 1000 + twist_aux->angular.z* Base_Width / 2.0;
+        TempLSpeed = twist_aux->linear.x * 1000 - twist_aux->angular.z * Base_Width / 2.0;
+        TempRSpeed = twist_aux->linear.x * 1000 + twist_aux->angular.z * Base_Width / 2.0;
         dt_control2(TempLSpeed, TempRSpeed);
     }
 }
@@ -211,9 +207,6 @@ void dt_stop_callback(const std_msgs::msg::UInt8 status)
     dtstop(status.data);
 }
 
- 
-
- 
 int main(int argc, char **argv)
 {
     u16 len = 0;
@@ -223,44 +216,36 @@ int main(int argc, char **argv)
     int baud_data;
     int len_time = 0;
 
-	rclcpp::init(argc, argv);
-	auto node = std::make_shared<rclcpp::Node>("publish_dt_msg");
-    //ros::init(argc, argv, "publish_dt_msg", ros::init_options::NoSigintHandler); // 解析参数
-    //ros::NodeHandle nh;
-    //ros::NodeHandle n("~");
- 
-	node->declare_parameter<std::string>("usart_port",usart_port);
-	node->declare_parameter<int>("baud_data",baud_data);
-	node->declare_parameter<int>("control_mode",control_mode);
-    //ros::Subscriber dt_error_sub = nh.subscribe("/collision_release", 100, dt_error_clear_callback); // 防撞解除
-    //ros::Subscriber go_charde_sub = nh.subscribe("/go_charge", 100, dt_go_charge_callback);          // 回充 0为关闭，1为开启
-    //ros::Subscriber dt_stop_sub = nh.subscribe("/go_stop", 100, dt_stop_callback);                   // 软件急停 0为不急停，1为急停
-    
-	rclcpp::Subscription<std_msgs::msg::UInt8::ConstPtr>::SharedPtr dt_error_sub 
-				= node->create_subscription<std_msgs::msg::UInt8::ConstPtr>("/collision_release", 10,dt_error_clear_callback);
-	rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr go_charde_sub 
-				= node->create_subscription<std_msgs::msg::UInt8>("/go_charge", 10,dt_go_charge_callback);
-	rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr dt_stop_sub 
-				= node->create_subscription<std_msgs::msg::UInt8>("/go_stop", 10,dt_stop_callback);
-	
+    rclcpp::init(argc, argv);
+    auto node = std::make_shared<rclcpp::Node>("publish_dt_msg");
+    // ros::init(argc, argv, "publish_dt_msg", ros::init_options::NoSigintHandler); // 解析参数
+    // ros::NodeHandle nh;
+    // ros::NodeHandle n("~");
 
-	signal(SIGINT, mySigIntHandler);                                                                 // 把原来ctrl+c中断函数覆盖掉，把信号槽连接到mySigIntHandler保证关闭节点
+    node->declare_parameter<std::string>("usart_port", usart_port);
+    node->declare_parameter<int>("baud_data", baud_data);
+    node->declare_parameter<int>("control_mode", control_mode);
+    // ros::Subscriber dt_error_sub = nh.subscribe("/collision_release", 100, dt_error_clear_callback); // 防撞解除
+    // ros::Subscriber go_charde_sub = nh.subscribe("/go_charge", 100, dt_go_charge_callback);          // 回充 0为关闭，1为开启
+    // ros::Subscriber dt_stop_sub = nh.subscribe("/go_stop", 100, dt_stop_callback);                   // 软件急停 0为不急停，1为急停
+
+    rclcpp::Subscription<std_msgs::msg::UInt8::ConstPtr>::SharedPtr dt_error_sub = node->create_subscription<std_msgs::msg::UInt8::ConstPtr>("/collision_release", 10, dt_error_clear_callback);
+    rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr go_charde_sub = node->create_subscription<std_msgs::msg::UInt8>("/go_charge", 10, dt_go_charge_callback);
+    rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr dt_stop_sub = node->create_subscription<std_msgs::msg::UInt8>("/go_stop", 10, dt_stop_callback);
+
+    signal(SIGINT, mySigIntHandler); // 把原来ctrl+c中断函数覆盖掉，把信号槽连接到mySigIntHandler保证关闭节点
 
     adora_msgs::msg::Dt1 dt1_msg;
     adora_msgs::msg::Control1 control_msg;
 
-    //ros::Publisher pub1 = nh.advertise<ros_dt_msg::dt1>("DT_Robot_agv1", 10); // 创建 publisher 对象
-    //ros::Subscriber dt_control_sub = nh.subscribe("/cmd_vel", 100, dt_control_callback);
-	rclcpp::Publisher<adora_msgs::msg::Dt1>::SharedPtr pub1
-							= node->create_publisher<adora_msgs::msg::Dt1>("/DT_Robot_agv1",20); 
-	rclcpp::Subscription<geometry_msgs::msg::Twist::ConstPtr >::SharedPtr dt_control_sub 
-							= node->create_subscription<geometry_msgs::msg::Twist::ConstPtr >("/cmd_vel", 10,dt_control_callback);
-
+    // ros::Publisher pub1 = nh.advertise<ros_dt_msg::dt1>("DT_Robot_agv1", 10); // 创建 publisher 对象
+    // ros::Subscriber dt_control_sub = nh.subscribe("/cmd_vel", 100, dt_control_callback);
+    rclcpp::Publisher<adora_msgs::msg::Dt1>::SharedPtr pub1 = node->create_publisher<adora_msgs::msg::Dt1>("/DT_Robot_agv1", 20);
+    rclcpp::Subscription<geometry_msgs::msg::Twist::ConstPtr>::SharedPtr dt_control_sub = node->create_subscription<geometry_msgs::msg::Twist::ConstPtr>("/cmd_vel", 10, dt_control_callback);
 
     adora_msgs::msg::Dt2 dt2_msg;
-    //ros::Publisher pub2 = nh.advertise<ros_dt_msg::dt2>("DT_Robot_agv2", 10); // 创建 publisher 对象
-	rclcpp::Publisher<adora_msgs::msg::Dt2>::SharedPtr pub2
-							= node->create_publisher<adora_msgs::msg::Dt2>("DT_Robot_agv2",20); 
+    // ros::Publisher pub2 = nh.advertise<ros_dt_msg::dt2>("DT_Robot_agv2", 10); // 创建 publisher 对象
+    rclcpp::Publisher<adora_msgs::msg::Dt2>::SharedPtr pub2 = node->create_publisher<adora_msgs::msg::Dt2>("DT_Robot_agv2", 20);
     try
     {
         // 设置串口属性，并打开串口
@@ -288,7 +273,6 @@ int main(int argc, char **argv)
     }
     open20ms(control_mode);
 
-
     rclcpp::Rate loop_rate(100);
 
     while (rclcpp::ok())
@@ -304,7 +288,7 @@ int main(int argc, char **argv)
                 RXRobotData20MS.data[i] = buffer[i];
             }
             u16 TempCheck = 0;
-            for(u8 i=0;i<sizeof(RXRobotData20MS.data)-2;i++)
+            for (u8 i = 0; i < sizeof(RXRobotData20MS.data) - 2; i++)
             {
                 TempCheck += RXRobotData20MS.data[i];
             }
@@ -349,7 +333,7 @@ int main(int argc, char **argv)
             }
             else
             {
-                printf("not read accuracy,SUM:%02X,Check:%02X\n\n",TempCheck,RXRobotData20MS.prot.Check );
+                printf("not read accuracy,SUM:%02X,Check:%02X\n\n", TempCheck, RXRobotData20MS.prot.Check);
                 len = ser.available();
                 // 清空数据残余
                 if (len > 0 && len < 200)
@@ -368,14 +352,14 @@ int main(int argc, char **argv)
             len_time++;
             if (len_time > 100)
             {
-                printf("len_time:%d\n",len_time);
+                printf("len_time:%d\n", len_time);
                 len_time = 0;
                 open20ms(control_mode);
-                printf("ros dt open 20cm\n");               
+                printf("ros dt open 20cm\n");
             }
         }
 
-        //ros::spinOnce();
+        // ros::spinOnce();
         loop_rate.sleep();
     }
     return 0;

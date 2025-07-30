@@ -64,5 +64,8 @@
         "typeinfo": "cpp",
         "variant": "cpp",
         "bit": "cpp"
-    }
+    },
+    "editor.detectIndentation": false,
+    "editor.tabSize": 4, //vscode设置的缩进量
+    "editor.formatOnSave": false
 }
